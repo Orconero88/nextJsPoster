@@ -17,22 +17,30 @@ export default function Post() {
   const [user, loading] = useAuthState(auth);
   const route = useRouter();
   const routeData = route.query;
+  const [canSubmit, setCanSubmit] = useState(false);
 
   //Submit Post
   const submitPost = async (e) => {
     e.preventDefault();
     //Run checks for description
+    if (!canSubmit) {
+      toast.error("Please wait 60 seconds before submitting again", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 1000,
+      });
+      return;
+    }
     if (!post.description) {
       toast.error("Description Field empty 😅", {
         position: toast.POSITION.TOP_CENTER,
-        autoClose: 1500,
+        autoClose: 1000,
       });
       return;
     }
     if (post.description.length > 300) {
       toast.error("Description too long 😅", {
         position: toast.POSITION.TOP_CENTER,
-        autoClose: 1500,
+        autoClose: 1000,
       });
       return;
     }
@@ -53,9 +61,10 @@ export default function Post() {
         username: user.displayName,
       });
       setPost({ description: "" });
+      setCanSubmit(false);
       toast.success("Post has been made 🚀", {
         position: toast.POSITION.TOP_CENTER,
-        autoClose: 1500,
+        autoClose: 1000,
       });
       return route.push("/");
     }
@@ -72,6 +81,10 @@ export default function Post() {
 
   useEffect(() => {
     checkUser();
+    const timeout = setTimeout(() => {
+      setCanSubmit(true);
+    }, 60000);
+    return () => clearTimeout(timeout);
   }, [user, loading]);
 
   return (
